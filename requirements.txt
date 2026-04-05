@@ -4,3 +4,4 @@ pandas
 scikit-learn
 dill
 django
+gunicorn
