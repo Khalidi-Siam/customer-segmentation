@@ -1,6 +1,6 @@
 pandas
-seaborn
-matplotlib
+# seaborn
+# matplotlib
 scikit-learn
 dill
 django
