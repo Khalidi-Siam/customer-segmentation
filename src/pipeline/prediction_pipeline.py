@@ -8,10 +8,14 @@ from src.exception import CustomException
 from src.utils import load_object
 
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ARTIFACTS_DIR = os.getenv('ML_ARTIFACTS_DIR', os.path.join(PROJECT_ROOT, 'artifacts'))
+
+
 @dataclass
 class PredictionPipelineConfig:
-	model_path: str = os.path.join('artifacts', 'model.pkl')
-	preprocessor_path: str = os.path.join('artifacts', 'preprocessor.pkl')
+	model_path: str = os.path.join(ARTIFACTS_DIR, 'model.pkl')
+	preprocessor_path: str = os.path.join(ARTIFACTS_DIR, 'preprocessor.pkl')
 
 
 class PredictPipeline:
