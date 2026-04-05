@@ -50,10 +50,10 @@ class CustomData:
 			raise CustomException(e, sys)
 
 
-if __name__ == '__main__':
-	sample = CustomData(annual_income=70, spending_score=65)
-	sample_df = sample.get_data_as_data_frame()
+# if __name__ == '__main__':
+# 	sample = CustomData(annual_income=70, spending_score=65)
+# 	sample_df = sample.get_data_as_data_frame()
 
-	predictor = PredictPipeline()
-	cluster_id = int(predictor.predict(sample_df)[0])
-	print({'predicted_cluster': cluster_id})
+# 	predictor = PredictPipeline()
+# 	cluster_id = int(predictor.predict(sample_df)[0])
+# 	print({'predicted_cluster': cluster_id})

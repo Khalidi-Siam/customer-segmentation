@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --accent-2: #818cf8;
+            --surface: rgba(15, 20, 35, 0.85);
+            --border: rgba(255, 255, 255, 0.07);
+            --text-primary: #f1f5f9;
+            --text-muted: rgba(148, 163, 184, 0.85);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #060b14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            font-family: 'DM Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 100%, rgba(129, 140, 248, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(129, 140, 248, 0.08);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: 100px;
+            padding: 5px 14px 5px 8px;
+            margin-bottom: 20px;
+            animation: fadeDown 0.5s ease both;
+        }
+
+        .eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            box-shadow: 0 0 8px var(--accent-2);
+        }
+
+        .eyebrow span {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-2);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+            text-align: center;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20%; right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-2), var(--accent), transparent);
+            opacity: 0.6;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes ringPulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+
+        .card-header {
+            margin-bottom: 28px;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+        }
+
+        .title {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* Result display */
+        .result-box {
+            background: rgba(56, 189, 248, 0.04);
+            border: 1px solid rgba(56, 189, 248, 0.14);
+            border-radius: 16px;
+            padding: 32px 24px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+            animation: scaleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+        }
+
+        /* Radial glow behind cluster number */
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(ellipse, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Animated pulse rings */
+        .ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            animation: ringPulse 2.4s ease-out infinite;
+            pointer-events: none;
+        }
+
+        .ring:nth-child(2) { animation-delay: 0.8s; }
+        .ring:nth-child(3) { animation-delay: 1.6s; }
+
+        .cluster-id {
+            font-family: 'Syne', sans-serif;
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            position: relative;
+        }
+
+        .cluster-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(56, 189, 248, 0.5);
+            margin-bottom: 14px;
+        }
+
+        .divider-mini {
+            width: 32px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            margin: 0 auto 14px;
+        }
+
+        .cluster-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.42s both;
+        }
+
+        .stat-chip {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        .stat-chip-label {
+            font-size: 10.5px;
+            font-weight: 500;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: rgba(100, 116, 139, 0.65);
+            margin-bottom: 4px;
+        }
+
+        .stat-chip-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Button */
+        .btn-wrap {
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            color: #0a0f1e;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.35);
+        }
+
+        .btn:hover::before { opacity: 1; }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn-arrow {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover .btn-arrow { transform: translateX(3px); }
+
+        /* Footer */
+        .footer {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.56s both;
+        }
+
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: rgba(100, 116, 139, 0.6);
+        }
+
+        .footer-badge strong {
+            color: rgba(148, 163, 184, 0.75);
+            font-weight: 500;
+        }
+
+        .footer-sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(100, 116, 139, 0.35);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="eyebrow">
+            <div class="eyebrow-dot"></div>
+            <span>Analysis Complete</span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="title">Prediction Result</div>
+                <div class="subtitle">The customer has been assigned to the following segment.</div>
+            </div>
+
+            <div class="result-box">
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+
+                <div class="cluster-label">Assigned Cluster</div>
+                <div class="cluster-id">{{ predicted_cluster }}</div>
+                <div class="divider-mini"></div>
+                <div class="cluster-name">{{ cluster_name }}</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-chip">
+                    <div class="stat-chip-label">Model</div>
+                    <div class="stat-chip-value">KMeans</div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-chip-label">Status</div>
+                    <div class="stat-chip-value">Confident</div>
+                </div>
+            </div>
+
+            <div class="btn-wrap">
+                <a href="{% url 'index' %}" class="btn">
+                    Predict Another
+                    <span class="btn-arrow">→</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-badge"><strong>KMeans Clustering</strong></span>
+            <div class="footer-sep"></div>
+            <span class="footer-badge"><strong>Django</strong></span>
+            <div class="footer-sep"></div>
+            <span class="footer-badge">scikit-learn</span>
+        </div>
+    </div>
+</body>
+</html>

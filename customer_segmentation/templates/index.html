@@ -1,0 +1,437 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Cluster Prediction</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --accent-2: #818cf8;
+            --glow: rgba(56, 189, 248, 0.18);
+            --surface: rgba(15, 20, 35, 0.85);
+            --border: rgba(255, 255, 255, 0.07);
+            --border-hover: rgba(56, 189, 248, 0.4);
+            --text-primary: #f1f5f9;
+            --text-muted: rgba(148, 163, 184, 0.85);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #060b14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            font-family: 'DM Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Ambient background effects */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 100%, rgba(129, 140, 248, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Subtle grid */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Floating label pill */
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 100px;
+            padding: 5px 14px 5px 8px;
+            margin-bottom: 20px;
+            animation: fadeDown 0.5s ease both;
+        }
+
+        .eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .eyebrow span {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+        }
+
+        /* Top accent line */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20%; right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+            opacity: 0.6;
+        }
+
+        /* Subtle inner glow */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -80px; left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 150px;
+            background: radial-gradient(ellipse, rgba(56, 189, 248, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .card-header {
+            margin-bottom: 32px;
+        }
+
+        .title {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+        }
+
+        .title span {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.65;
+            font-weight: 300;
+        }
+
+        /* Form fields */
+        .field {
+            margin-bottom: 18px;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .field:nth-child(1) { animation-delay: 0.22s; }
+        .field:nth-child(2) { animation-delay: 0.3s; }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, 0.7);
+            margin-bottom: 9px;
+        }
+
+        label .label-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.6;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 15px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+
+        input[type="number"]::placeholder {
+            color: rgba(100, 116, 139, 0.55);
+        }
+
+        input[type="number"]:hover {
+            border-color: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.055);
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.04);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(100, 116, 139, 0.5);
+            pointer-events: none;
+            letter-spacing: 0.04em;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Submit button */
+        .btn-wrap {
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            color: #0a0f1e;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.35);
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            opacity: 0.9;
+        }
+
+        .btn-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-arrow {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover .btn-arrow {
+            transform: translateX(3px);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both;
+        }
+
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: rgba(100, 116, 139, 0.6);
+        }
+
+        .footer-badge strong {
+            color: rgba(148, 163, 184, 0.75);
+            font-weight: 500;
+        }
+
+        .footer-sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(100, 116, 139, 0.35);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="eyebrow">
+            <div class="eyebrow-dot"></div>
+            <span>ML Powered Analysis</span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="title">Customer<br><span>Cluster Predictor</span></div>
+                <div class="subtitle">
+                    Enter a customer's annual income and spending score to predict their segment using our trained model.
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'result' %}">
+                {% csrf_token %}
+
+                <div class="field">
+                    <label for="income">
+                        <svg class="label-icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/>
+                            <path d="M7 4v6M5 5.5h2.5a1 1 0 0 1 0 2H5.5a1 1 0 0 0 0 2H9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                        Annual Income
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="0.01" name="annual_income" id="income" placeholder="e.g. 60" required>
+                        <span class="input-suffix">k$</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="score">
+                        <svg class="label-icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 1.5L8.545 5.32l4.072.353-3.065 2.72.915 4.002L7 10.3l-3.467 2.095.915-4.002-3.065-2.72 4.072-.354L7 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                        </svg>
+                        Spending Score
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="0.01" name="spending_score" id="score" placeholder="e.g. 45" min="1" max="100" required>
+                        <span class="input-suffix">/ 100</span>
+                    </div>
+                </div>
+
+                <div class="btn-wrap">
+                    <button type="submit" class="btn">
+                        <span class="btn-inner">
+                            Predict Cluster
+                            <span class="btn-arrow">→</span>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="footer">
+            <span class="footer-badge">
+                <strong>KMeans Clustering</strong>
+            </span>
+            <div class="footer-sep"></div>
+            <span class="footer-badge">
+                <strong>Django</strong>
+            </span>
+            <div class="footer-sep"></div>
+            <span class="footer-badge">scikit-learn</span>
+        </div>
+    </div>
+</body>
+</html>
